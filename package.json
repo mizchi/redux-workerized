@@ -1,5 +1,5 @@
 {
-  "name": "hello-front",
+  "name": "react-redux-worker-poc",
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",
@@ -8,7 +8,19 @@
     "build": "parcel build src/index.html"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.118",
+    "@types/react": "^16.4.18",
+    "@types/react-dom": "^16.0.9",
     "parcel-bundler": "^1.10.3",
+    "ts-node": "^7.0.1",
     "typescript": "^3.1.3"
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.0.0",
+    "comlinkjs": "^3.0.3",
+    "lodash": "^4.17.11",
+    "react": "^16.7.0-alpha.0",
+    "react-dom": "^16.7.0-alpha.0",
+    "redux": "^4.0.1"
   }
 }
