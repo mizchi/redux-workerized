@@ -1,7 +1,7 @@
 import "@babel/polyfill";
 import React, { useCallback } from "react";
 import ReactDOM from "react-dom";
-import { createWorkerContext } from "../../src/react";
+import { createWorkerContext } from "../../react";
 import { RootState } from "./reducer";
 
 const worker = new Worker("./worker.ts");
