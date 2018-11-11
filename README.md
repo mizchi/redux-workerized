@@ -51,7 +51,9 @@ import * as Comlink from "comlinkjs";
 import { RootState, increment, Increment } from "./reducer";
 
 // Use webpack's worker-loader or parcel to build worker instance and cast
-const store: WorkerizedStore = Comlink.proxy(new Worker("./worker.ts")) as any;
+const store: WorkerizedStore<RootState> = Comlink.proxy(
+  new Worker("./worker.ts")
+) as any;
 
 store.subscribe((newState: RootState) => {
   console.log("changed", newState);
