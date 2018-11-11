@@ -1,6 +1,7 @@
 import { WorkerizedStore } from ".";
 import { AnyAction, Store } from "redux";
-import isEqual from "lodash.isequal";
+
+const isEqual = require("lodash.isequal");
 
 let _cnt = 0;
 

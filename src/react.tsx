@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import * as Comlink from "comlinkjs";
 import { Dispatch, AnyAction } from "redux";
-import isEqual from "lodash.isequal";
 import { WorkerizedStore } from ".";
+
+const isEqual = require("lodash.isequal");
 
 export function createWorkerContext<State>(worker: Worker) {
   const StateContext = React.createContext<State>(null as any);
