@@ -22,7 +22,7 @@ Put react-hooks.d.ts to your typescript env https://gist.github.com/mizchi/bfc09
 
 ## Example
 
-See full code [examples/simple](examples/simple)
+See full code [examples/react](examples/react)
 
 ### WorkerThread
 
