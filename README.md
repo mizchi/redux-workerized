@@ -54,9 +54,11 @@ const store: WorkerizedStore<RootState> = Comlink.proxy(
   new Worker("./worker.ts")
 ) as any;
 
-store.subscribe((newState: RootState) => {
-  console.log("changed", newState);
-});
+store.subscribe(
+  Comlink.proxyValue((newState: RootState) => {
+    console.log("changed", newState);
+  })
+);
 
 (async () => {
   await store.dispatch(increment());
@@ -64,6 +66,8 @@ store.subscribe((newState: RootState) => {
   console.log("current state", currentState);
 })();
 ```
+
+`NOTE`: `store.subscribe()` needs `Complink.proxyValue(...)` to serialize data from worker
 
 ## MainThread with react
 
@@ -153,12 +157,12 @@ yarn parcel examples/react/index.html
 
 - [x] Basic examples
 - [x] with percel
-- [ ] Init with Suspense
+- [x] Publish
+- [ ] Init with React.Suspense
 - [ ] SSR
 - [ ] Run in ServiceWorker
 - [ ] rollup to umd
-- [ ] with webpack
-- [ ] WorkerDOM
+- [ ] with webpack example
 
 ## LICENSE
 
