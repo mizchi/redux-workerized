@@ -44,11 +44,10 @@ Comlink.expose({ ...proxy }, self);
 ```tsx
 import "@babel/polyfill";
 import { WorkerizedStore } from "redux-workerized";
-import { createWorkerContext } from "redux-workerized/react";
 import * as Comlink from "comlinkjs";
 
 // This is counter example. Use your reducer.
-import { RootState, increment, Increment } from "./reducer";
+import { RootState, increment } from "./reducer";
 
 // Use webpack's worker-loader or parcel to build worker instance and cast
 const store: WorkerizedStore<RootState> = Comlink.proxy(
