@@ -1,3 +1,4 @@
+import { WorkerizedStore } from ".";
 import { AnyAction, Store } from "redux";
 import isEqual from "lodash/isequal";
 
@@ -7,14 +8,14 @@ function uniqueId() {
   return ++_cnt;
 }
 
-function defaultSelector<State>(s: State) {
-  return s;
+function defaultSelector<State>(state: State) {
+  return state;
 }
 
-export function createStoreProxy<State, Snapshot = State>(
+export function createWorkerizedStore<State, Snapshot = State>(
   store: Store<State>,
   selector: (state: State) => Snapshot = defaultSelector as any
-) {
+): WorkerizedStore<State> {
   let map = new Map<number, Function>();
   let currentSnapshot: Snapshot = selector(store.getState());
   return {
@@ -31,16 +32,16 @@ export function createStoreProxy<State, Snapshot = State>(
       map.set(subscriptionId, unsubscribe);
       return subscriptionId;
     },
-    unsubscribe(subscrptionId: number) {
-      const unsubscribe = map.get(subscrptionId);
+    async unsubscribe(subscriptionId: number) {
+      const unsubscribe = map.get(subscriptionId);
       unsubscribe && unsubscribe();
-      map.delete(subscrptionId);
+      map.delete(subscriptionId);
     },
-    getState() {
+    async getState() {
       return store.getState();
     },
-    dispatch(action: AnyAction) {
-      return store.dispatch(action);
+    async dispatch(action: AnyAction) {
+      return store.dispatch(action) as any;
     }
   };
 }

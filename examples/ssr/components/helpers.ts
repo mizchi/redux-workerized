@@ -1,10 +1,10 @@
-import { createWorkerContext } from "../../../src";
+import { createWorkerContext } from "../../../src/react";
 import { RootState } from "../store/reducer";
 
 const worker = new Worker("../worker/index.ts");
 
 export const {
-  WorkerContext,
+  WorkerizedStoreContext,
   useSelector,
   useDispatch,
   ready

@@ -2,16 +2,17 @@ import React, { useState, useEffect, useContext } from "react";
 import * as Comlink from "comlinkjs";
 import { Dispatch, AnyAction } from "redux";
 import isEqual from "lodash/isEqual";
+import { WorkerizedStore } from ".";
 
 export function createWorkerContext<State>(worker: Worker) {
   const StateContext = React.createContext<State>(null as any);
   const ProxyContext = React.createContext<any>(null as any);
-  const proxy: any = Comlink.proxy(worker);
+  const storePoxy: WorkerizedStore<State> = Comlink.proxy(worker) as any;
 
   // build initialState
   let currentState: State | null = null;
 
-  const ready = proxy.getState().then((state: State) => {
+  const ready = storePoxy.getState().then((state: State) => {
     currentState = state;
   });
 
@@ -21,7 +22,7 @@ export function createWorkerContext<State>(worker: Worker) {
 
     // subsribe remote state
     useEffect(() => {
-      const subscriptionIdPromise = proxy.subscribe(
+      const subscriptionIdPromise = storePoxy.subscribe(
         Comlink.proxyValue((state: State) => {
           if (!isEqual(state, currentState)) {
             setState(state);
@@ -32,29 +33,33 @@ export function createWorkerContext<State>(worker: Worker) {
 
       // Set initialState at null
       currentState == null &&
-        proxy.getState().then((state: State) => {
+        storePoxy.getState().then((state: State) => {
           setState(state);
         });
       return async () => {
         const subscriptionId: number = await subscriptionIdPromise;
-        proxy.unsubscribe(subscriptionId);
+        storePoxy.unsubscribe(subscriptionId);
       };
     }, []);
-    return [current, proxy];
+    return [current, storePoxy];
   }
 
-  function WorkerContext(props: { children: React.ReactNode; fallback?: any }) {
+  function WorkerizedStoreContext(props: {
+    children: React.ReactNode;
+    fallback?: any;
+  }) {
     const [current, proxy] = useStore();
     if (current == null) {
       return props.fallback || <div />;
+    } else {
+      return (
+        <ProxyContext.Provider value={proxy}>
+          <StateContext.Provider value={current as any}>
+            {props.children}
+          </StateContext.Provider>
+        </ProxyContext.Provider>
+      );
     }
-    return (
-      <ProxyContext.Provider value={proxy}>
-        <StateContext.Provider value={current}>
-          {props.children}
-        </StateContext.Provider>
-      </ProxyContext.Provider>
-    );
   }
 
   function useSelector<Selected>(fn: (state: State) => Selected): Selected {
@@ -68,7 +73,7 @@ export function createWorkerContext<State>(worker: Worker) {
   }
 
   return {
-    WorkerContext,
+    WorkerizedStoreContext,
     useSelector,
     useDispatch,
     ready

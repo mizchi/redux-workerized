@@ -1,13 +1,16 @@
 import "@babel/polyfill";
 import React, { useCallback } from "react";
 import ReactDOM from "react-dom";
-import { createWorkerContext } from "../../src";
+import { createWorkerContext } from "../../src/react";
 import { RootState } from "./reducer";
 
 const worker = new Worker("./worker.ts");
-const { WorkerContext, useSelector, useDispatch, ready } = createWorkerContext<
-  RootState
->(worker);
+const {
+  WorkerizedStoreContext,
+  useSelector,
+  useDispatch,
+  ready
+} = createWorkerContext<RootState>(worker);
 
 // Components
 
@@ -25,9 +28,9 @@ function CounterApp() {
 
 export function App() {
   return (
-    <WorkerContext>
+    <WorkerizedStoreContext>
       <CounterApp />
-    </WorkerContext>
+    </WorkerizedStoreContext>
   );
 }
 

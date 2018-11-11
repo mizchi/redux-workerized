@@ -76,3 +76,9 @@ typings/
 
 
 dist
+/index.js
+/index.d.ts
+/worker.js
+/worker.d.ts
+/react.js
+/react.d.ts
