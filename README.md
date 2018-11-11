@@ -8,6 +8,8 @@ WIP: Not production ready. This is conceptual implementation
 
 ## How to use
 
+Working example https://github.com/mizchi/redux-workerized-example
+
 Add dependencies.
 
 ```
