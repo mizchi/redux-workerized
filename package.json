@@ -29,5 +29,13 @@
     "react": "*",
     "react-dom": "*",
     "redux": "*"
-  }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "worker.js",
+    "worker.d.ts",
+    "react.js",
+    "react.d.ts"
+  ]
 }
