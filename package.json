@@ -1,6 +1,6 @@
 {
   "name": "redux-workerized",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -42,6 +42,8 @@
     "worker.js",
     "worker.d.ts",
     "react.js",
-    "react.d.ts"
+    "react.d.ts",
+    "vue.js",
+    "vue.d.ts"
   ]
 }

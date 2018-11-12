@@ -82,7 +82,7 @@ const store: WorkerizedStore<RootState, CounterSnapshot> = Comlink.proxy(
 
 `NOTE`: `store.subscribe(...)` needs `Complink.proxyValue(...)` to serialize data from worker
 
-## MainThread with react
+## MainThread with React
 
 Dependencies
 
@@ -134,35 +134,6 @@ ready.then(() => {
 });
 ```
 
-## API
-
-```ts
-import { Dispatch, AnyAction } from "redux";
-
-// redux-workerized
-export type WorkerizedStore<State, A extends AnyAction = AnyAction> = {
-  getState(): Promise<State>;
-  dispatch(action: A): Promise<void>;
-  subscribe(listener: (state: State) => void): Promise<number>;
-  unsubscribe(listenerId: number): Promise<void>;
-};
-
-// redux-workerized/react
-export declare function createWorkerContext<State>(
-  worker: Worker
-): {
-  WorkerContext: (
-    props: {
-      children: any;
-      fallback?: any;
-    }
-  ) => any;
-  useSnapshot: <Selected>(fn: (state: State) => Selected) => Selected;
-  useDispatch: <A extends AnyAction>() => Dispatch<A>;
-  ready: Promise<void>;
-};
-```
-
 ## MainThread with Vue
 
 ```tsx
@@ -170,6 +141,7 @@ import "@babel/polyfill";
 import Vue from "vue";
 import Vuex from "vuex";
 import App from "./App.vue";
+
 import { workerPlugin, proxy } from "redux-workerize/vue";
 import { RootState, INCREMENT } from "./reducer";
 
