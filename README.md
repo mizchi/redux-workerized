@@ -141,13 +141,12 @@ import "@babel/polyfill";
 import Vue from "vue";
 import Vuex from "vuex";
 import App from "./App.vue";
-
-import { workerPlugin, proxy } from "redux-workerize/vue";
+import { workerPlugin, proxy, SYNC } from "../../vue";
 import { RootState, INCREMENT } from "./reducer";
 
 Vue.use(Vuex);
 
-export type CounterSnapshot = {
+type CounterSnapshot = {
   value: number;
 };
 
@@ -162,7 +161,7 @@ const store = new Vuex.Store<State>({
     }
   },
   mutations: {
-    $sync(state, payload: CounterSnapshot) {
+    [SYNC](state, payload: CounterSnapshot) {
       state.remote = { ...state.remote, ...payload };
     },
     ...proxy([INCREMENT])
