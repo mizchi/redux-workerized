@@ -29,14 +29,11 @@ function CounterApp() {
   return <button onClick={onClick}>{value}</button>;
 }
 
-export function App() {
-  return (
+ready.then(() => {
+  ReactDOM.render(
     <WorkerContext>
       <CounterApp />
-    </WorkerContext>
+    </WorkerContext>,
+    document.querySelector(".root")
   );
-}
-
-ready.then(() => {
-  ReactDOM.render(<App />, document.querySelector(".root"));
 });
