@@ -141,7 +141,7 @@ import "@babel/polyfill";
 import Vue from "vue";
 import Vuex from "vuex";
 import App from "./App.vue";
-import { workerPlugin, proxy, SYNC } from "../../vue";
+import { workerPlugin, proxy, SYNC } from "redux-workerized/vue";
 import { RootState, INCREMENT } from "./reducer";
 
 Vue.use(Vuex);
