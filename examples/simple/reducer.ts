@@ -4,11 +4,9 @@ import { combineReducers, AnyAction, Reducer } from "redux";
 
 type CounterState = {
   value: number;
-  hiddenValue: number; // check shallow equal
 };
 
 const INCREMENT = "counter/increment";
-const INCREMENT_HIDDEN_VALUE = "counter/increment-hidden-value";
 
 export type Increment = {
   type: typeof INCREMENT;
@@ -20,17 +18,12 @@ export function increment(): Increment {
   };
 }
 
-type CounterAction =
-  | {
-      type: typeof INCREMENT;
-    }
-  | {
-      type: typeof INCREMENT_HIDDEN_VALUE;
-    };
+type CounterAction = {
+  type: typeof INCREMENT;
+};
 
 const initialCounterState = {
-  value: 0,
-  hiddenValue: 0
+  value: 0
 };
 
 function counter(
@@ -40,9 +33,6 @@ function counter(
   switch (action.type) {
     case INCREMENT: {
       return { ...state, value: state.value + 1 };
-    }
-    case INCREMENT_HIDDEN_VALUE: {
-      return { ...state, hiddenValue: state.value + 1 };
     }
     default: {
       return state;

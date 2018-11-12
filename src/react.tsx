@@ -3,52 +3,52 @@ import * as Comlink from "comlinkjs";
 import { Dispatch, AnyAction } from "redux";
 import { WorkerizedStore } from ".";
 
-const isEqual = require("lodash.isequal");
-
-export function createWorkerContext<State>(worker: Worker) {
-  const StateContext = React.createContext<State>(null as any);
+export function createWorkerContext<State, Snapshot = State>(
+  worker: Worker,
+  selector: (root: State) => Promise<Snapshot> | Snapshot = s => s as any
+) {
+  const StateContext = React.createContext<Snapshot>(null as any);
   const ProxyContext = React.createContext<any>(null as any);
-  const storePoxy: WorkerizedStore<State> = Comlink.proxy(worker) as any;
+  const storeProxy: WorkerizedStore<State, Snapshot> = Comlink.proxy(
+    worker
+  ) as any;
 
   // build initialState
-  let currentState: State | null = null;
+  let currentSnapshot: Snapshot | null = null;
 
-  const ready = storePoxy.getState().then((state: State) => {
-    currentState = state;
+  const ready = storeProxy.getState().then(async (state: State) => {
+    currentSnapshot = await selector(state);
   });
 
   function useStore() {
-    const [current, setState] = useState<State | null>(currentState);
-    currentState = current;
+    const [current, setState] = useState<Snapshot | null>(currentSnapshot);
+    currentSnapshot = current;
 
     // subsribe remote state
     useEffect(() => {
-      const subscriptionIdPromise = storePoxy.subscribe(
-        Comlink.proxyValue((state: State) => {
-          if (!isEqual(state, currentState)) {
-            setState(state);
-            currentState = state;
-          }
-        })
+      const subscriptionIdPromise = storeProxy.subscribe(
+        Comlink.proxyValue((snapshot: Snapshot) => {
+          currentSnapshot = snapshot;
+          setState(snapshot);
+        }),
+        Comlink.proxyValue(selector as any)
       );
 
       // Set initialState at null
-      currentState == null &&
-        storePoxy.getState().then((state: State) => {
-          setState(state);
+      currentSnapshot == null &&
+        storeProxy.getState().then(async (state: State) => {
+          currentSnapshot = await selector(state);
+          setState(currentSnapshot);
         });
       return async () => {
         const subscriptionId: number = await subscriptionIdPromise;
-        storePoxy.unsubscribe(subscriptionId);
+        storeProxy.unsubscribe(subscriptionId);
       };
     }, []);
-    return [current, storePoxy];
+    return [current, storeProxy];
   }
 
-  function WorkerizedStoreContext(props: {
-    children: React.ReactNode;
-    fallback?: any;
-  }) {
+  function WorkerContext(props: { children: React.ReactNode; fallback?: any }) {
     const [current, proxy] = useStore();
     if (current == null) {
       return props.fallback || <div />;
@@ -63,9 +63,13 @@ export function createWorkerContext<State>(worker: Worker) {
     }
   }
 
-  function useSelector<Selected>(fn: (state: State) => Selected): Selected {
-    const state = useContext(StateContext);
-    return fn(state);
+  // TODO: Supress update by isEqual
+  function useSnapshot<Selected>(
+    selector: (snapshot: Snapshot) => Selected = (i: Snapshot) => i as any
+  ): Selected {
+    const snapshot = useContext(StateContext);
+    const selected = selector(snapshot);
+    return selected;
   }
 
   function useDispatch<A extends AnyAction>(): Dispatch<A> {
@@ -74,8 +78,8 @@ export function createWorkerContext<State>(worker: Worker) {
   }
 
   return {
-    WorkerizedStoreContext,
-    useSelector,
+    WorkerContext,
+    useSnapshot,
     useDispatch,
     ready
   };

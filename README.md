@@ -45,31 +45,42 @@ Comlink.expose({ ...proxy }, self);
 
 ```tsx
 import "@babel/polyfill";
-import { WorkerizedStore } from "redux-workerized";
+import { WorkerizedStore } from "../..";
 import * as Comlink from "comlinkjs";
 
 // This is counter example. Use your reducer.
 import { RootState, increment } from "./reducer";
 
+type CounterSnapshot = {
+  value: number;
+};
+
 // Use webpack's worker-loader or parcel to build worker instance and cast
-const store: WorkerizedStore<RootState> = Comlink.proxy(
+const store: WorkerizedStore<RootState, CounterSnapshot> = Comlink.proxy(
   new Worker("./worker.ts")
 ) as any;
 
-store.subscribe(
-  Comlink.proxyValue((newState: RootState) => {
-    console.log("changed", newState);
-  })
-);
-
 (async () => {
+  const subscritionId = await store.subscribe(
+    Comlink.proxyValue((snapshot: CounterSnapshot) => {
+      console.log("changed", snapshot);
+    }),
+    Comlink.proxyValue(
+      (state: RootState): CounterSnapshot => {
+        return state.counter;
+      }
+    )
+  );
+
   await store.dispatch(increment());
   const currentState = await store.getState();
   console.log("current state", currentState);
+  document.body.textContent = JSON.stringify(currentState);
+  await store.unsubscribe(subscritionId);
 })();
 ```
 
-`NOTE`: `store.subscribe()` needs `Complink.proxyValue(...)` to serialize data from worker
+`NOTE`: `store.subscribe(...)` needs `Complink.proxyValue(...)` to serialize data from worker
 
 ## MainThread with react
 
@@ -84,37 +95,42 @@ yarn add -d @types/react @types/react-dom
 import "@babel/polyfill";
 import React, { useCallback } from "react";
 import ReactDOM from "react-dom";
-import { createWorkerContext } from "redux-workerized/react";
-import { RootState, increment, Increment } from "./reducer";
+import { createWorkerContext } from "../../react";
+import { RootState } from "./reducer";
 
-const {
-  WorkerizedStoreContext,
-  useSelector,
-  useDispatch,
-  ready
-} = createWorkerContext<RootState>(new Worker("./worker.ts"));
+// build worker
 
-// Components
-function Counter() {
-  const counter = useSelector(state => state.counter);
+const worker = new Worker("./worker.ts");
+
+const { WorkerContext, useSnapshot, useDispatch, ready } = createWorkerContext(
+  worker,
+  (state: RootState) => state.counter
+);
+
+// components
+
+import { increment, Increment } from "./reducer";
+function CounterApp() {
+  const value = useSnapshot(state => state.value);
   const dispatch = useDispatch<Increment>();
 
   const onClick = useCallback(() => {
     dispatch(increment());
   }, []);
 
-  return <button onClick={onClick}>{counter.value}</button>;
+  return <button onClick={onClick}>{value}</button>;
 }
 
-// wait for worker side initialState
-// you can skip this with <WorkerizedStoreContext fallback="Loading...">...
-ready.then(() => {
-  ReactDOM.render(
-    <WorkerizedStoreContext>
-      <Counter />
-    </WorkerizedStoreContext>,
-    document.querySelector(".root")
+export function App() {
+  return (
+    <WorkerContext>
+      <CounterApp />
+    </WorkerContext>
   );
+}
+
+ready.then(() => {
+  ReactDOM.render(<App />, document.querySelector(".root"));
 });
 ```
 
@@ -135,13 +151,13 @@ export type WorkerizedStore<State, A extends AnyAction = AnyAction> = {
 export declare function createWorkerContext<State>(
   worker: Worker
 ): {
-  WorkerizedStoreContext: (
+  WorkerContext: (
     props: {
       children: any;
       fallback?: any;
     }
   ) => any;
-  useSelector: <Selected>(fn: (state: State) => Selected) => Selected;
+  useSnapshot: <Selected>(fn: (state: State) => Selected) => Selected;
   useDispatch: <A extends AnyAction>() => Dispatch<A>;
   ready: Promise<void>;
 };
@@ -160,11 +176,13 @@ yarn parcel examples/react/index.html
 - [x] Basic examples
 - [x] with percel
 - [x] Publish
+- [ ] Suppress update by sharrow equal
 - [ ] Init with React.Suspense
 - [ ] SSR
 - [ ] Run in ServiceWorker
 - [ ] rollup to umd
 - [ ] with webpack example
+- [ ] Monorepo
 
 ## LICENSE
 

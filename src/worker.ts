@@ -13,36 +13,39 @@ function defaultSelector<State>(state: State) {
   return state;
 }
 
-export function createWorkerizedStore<State, Snapshot = State>(
-  store: Store<State>,
-  selector: (state: State) => Snapshot = defaultSelector as any
+export function createWorkerizedStore<State>(
+  store: Store<State>
 ): WorkerizedStore<State> {
-  let map = new Map<number, Function>();
-  let currentSnapshot: Snapshot = selector(store.getState());
+  const listenerMap = new Map<number, Function>();
   return {
-    async subscribe(onChangeHandler: Function): Promise<number> {
+    async subscribe<Snapshot = State>(
+      onChangeHandler: Function,
+      selector: (state: State) => Snapshot = defaultSelector as any
+    ): Promise<number> {
+      const getSnapshot: () => Promise<Snapshot> = () =>
+        selector(store.getState()) as any;
       const subscriptionId = uniqueId();
-      const unsubscribe = store.subscribe(() => {
-        const newState = store.getState();
-        const snapshot = selector(newState);
-        if (!isEqual(snapshot, currentSnapshot)) {
-          onChangeHandler(snapshot);
-          currentSnapshot = snapshot;
+      let lastSnapshot = await getSnapshot();
+      const unsubscribe = store.subscribe(async () => {
+        const newSnapshot = await getSnapshot();
+        if (!isEqual(lastSnapshot, newSnapshot)) {
+          onChangeHandler(newSnapshot);
+          lastSnapshot = newSnapshot;
         }
       });
-      map.set(subscriptionId, unsubscribe);
+      listenerMap.set(subscriptionId, unsubscribe);
       return subscriptionId;
     },
     async unsubscribe(subscriptionId: number) {
-      const unsubscribe = map.get(subscriptionId);
-      unsubscribe && unsubscribe();
-      map.delete(subscriptionId);
+      const listener = listenerMap.get(subscriptionId);
+      listener && listener();
+      listenerMap.delete(subscriptionId);
     },
     async getState() {
       return store.getState();
     },
     async dispatch(action: AnyAction) {
-      return store.dispatch(action) as any;
+      await store.dispatch(action);
     }
   };
 }

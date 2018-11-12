@@ -4,33 +4,36 @@ import ReactDOM from "react-dom";
 import { createWorkerContext } from "../../react";
 import { RootState } from "./reducer";
 
-const worker = new Worker("./worker.ts");
-const {
-  WorkerizedStoreContext,
-  useSelector,
-  useDispatch,
-  ready
-} = createWorkerContext<RootState>(worker);
+// build worker
 
-// Components
+const worker = new Worker("./worker.ts");
+
+const { WorkerContext, useSnapshot, useDispatch, ready } = createWorkerContext<
+  RootState,
+  { value: number }
+>(worker, async (state: RootState) => {
+  return state.counter;
+});
+
+// components
 
 import { increment, Increment } from "./reducer";
 function CounterApp() {
-  const counter = useSelector(state => state.counter);
+  const value = useSnapshot(state => state.value);
   const dispatch = useDispatch<Increment>();
 
   const onClick = useCallback(() => {
     dispatch(increment());
   }, []);
 
-  return <button onClick={onClick}>{counter.value}</button>;
+  return <button onClick={onClick}>{value}</button>;
 }
 
 export function App() {
   return (
-    <WorkerizedStoreContext>
+    <WorkerContext>
       <CounterApp />
-    </WorkerizedStoreContext>
+    </WorkerContext>
   );
 }
 

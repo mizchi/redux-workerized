@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc --outdir . --target es5 -d --jsx react --esModuleInterop src/*",
-    "build-example": "parcel build src/index.html"
+    "run-example-react": "parcel run examples/react/index.html",
+    "run-example-simple": "parcel run examples/simple/index.html"
   },
   "devDependencies": {
     "@babel/polyfill": "^7.0.0",
